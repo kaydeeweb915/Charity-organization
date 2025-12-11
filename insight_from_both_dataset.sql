@@ -1,105 +1,108 @@
--- USING THE donation_data and donor_data2 FROM 
--- THE charity_organization DATABASE 
--- LET GENERATE SOME INSIGHT FROM THEM.
+-- Charity Fundraising Insights Using SQL
+-- Analyzing Donation_Data and Donor_Data2 from the charity_organization database
 
-
--- Top Ten (10) candidate who donate more, with their
--- state, university, etc.
-
--- TOTAL AMOUNT DONATED
-
+/*-----------------------------------------------------------
+    TOTAL DONATION AMOUNT
+------------------------------------------------------------*/
 SELECT  
-      SUM(donation) AS Total_donation
+      SUM(donation) AS total_donation
 FROM Donation_Data;
 
--- TOTAL AMOUNT DONATED BY BOTH MALE AND FEMALE
 
-SELECT gender, 
-      COUNT(gender) as gender_count, 
-	 SUM(donation)
+/*-----------------------------------------------------------
+    TOTAL DONATION BY GENDER
+------------------------------------------------------------*/
+SELECT 
+      gender, 
+      COUNT(*) AS gender_count, 
+      SUM(donation) AS total_donation
 FROM Donation_Data
 GROUP BY gender;
 
 
+/*-----------------------------------------------------------
+    TOP 10 DONORS (Joined With Donor Profile)
+------------------------------------------------------------*/
 SELECT
-      Donation_Data.first_name,
-      Donation_Data.last_name,
-      Donation_Data.email,
-      Donation_Data.gender,
-      Donation_Data.job_field,
-      Donation_Data.donation,
-      Donation_Data.state,
-      Donor_Data2.donation_frequency,
-      Donor_Data2.university
-FROM Donation_Data
-JOIN Donor_Data2
-ON Donation_Data.id = Donor_Data2.id
-ORDER BY donation DESC
+      d.first_name,
+      d.last_name,
+      d.email,
+      d.gender,
+      d.job_field,
+      d.donation,
+      d.state,
+      r.donation_frequency,
+      r.university
+FROM Donation_Data d
+JOIN Donor_Data2 r
+      ON d.id = r.id
+ORDER BY d.donation DESC
 LIMIT 10;
 
---  DONOR FREQUENCY WITH HIGHEST DONATION
-SELECT donation_frequency, 
-      COUNT(*) AS Total
+
+/*-----------------------------------------------------------
+    DONATION FREQUENCY DISTRIBUTION
+------------------------------------------------------------*/
+SELECT 
+      donation_frequency, 
+      COUNT(*) AS donor_count
 FROM Donor_Data2
-GROUP BY donation_frequency; 
+GROUP BY donation_frequency;
 
--- STATE WITH HIGHEST DONOR
 
-SELECT Donation_Data.state,
-       SUM(Donation_Data.donation) as sum_donor,
-       COUNT(*) As total_donor
+/*-----------------------------------------------------------
+    STATES WITH THE HIGHEST DONATION TOTALS
+------------------------------------------------------------*/
+SELECT 
+      state,
+      SUM(donation) AS total_donation,
+      COUNT(*) AS total_donors
 FROM Donation_Data
-GROUP BY Donation_Data.state
-ORDER BY sum_donor DESC;
+GROUP BY state
+ORDER BY total_donation DESC;
 
--- COUNT OF GENDER PER DONATION
 
-SELECT gender, 
-       COUNT(*) AS Total
+/*-----------------------------------------------------------
+    DONOR COUNT BY GENDER
+------------------------------------------------------------*/
+SELECT 
+      gender, 
+      COUNT(*) AS donor_count
 FROM Donation_Data
 GROUP BY gender;
 
--- JOB FIELD WITH THIER AVERAGE DONATION FREQUENCY
 
-SELECT Donation_Data.job_field,ROUND
-	   (AVG(Donation_Data.donation), 2) AS
-      Average_donation, Donor_Data2.donation_frequency
-FROM Donation_Data
-JOIN Donor_Data2
-ON Donation_Data.id = Donor_Data2.id
-GROUP by Donation_Data.job_field;
+/*-----------------------------------------------------------
+    AVERAGE DONATION BY JOB FIELD
+------------------------------------------------------------*/
+SELECT 
+      d.job_field,
+      ROUND(AVG(d.donation), 2) AS avg_donation
+FROM Donation_Data d
+GROUP BY d.job_field
+ORDER BY avg_donation DESC;
 
--- DISTINCT STATE AND THIER DONATION AMOUNT
 
-SELECT  DISTINCT(State), 
-       SUM(donation) as donation
+/*-----------------------------------------------------------
+    DONATION SUM BY STATE (Distinct View)
+------------------------------------------------------------*/
+SELECT  
+      state, 
+      SUM(donation) AS total_donation
 FROM Donation_Data
 GROUP BY state
-ORDER BY sum(donation) DESC ;
+ORDER BY total_donation DESC;
 
 
--- AVERAGE DONATION BASED ON FREQUENCY RATE
-
-SELECT  Donor_Data2.donation_frequency,
-        ROUND(avg(Donation_Data.donation),3) asAVG_donation,
-        SUM(Donation_Data.donation) as total_donation,
-        COUNT(Donation_Data.donation) as donation_freq_rate
-FROM Donation_Data
-JOIN Donor_Data2
-ON Donation_Data.id=Donor_Data2.id
-GROUP BY Donor_Data2.donation_frequency ; 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/*-----------------------------------------------------------
+    AVERAGE & TOTAL DONATION BY FREQUENCY TYPE
+------------------------------------------------------------*/
+SELECT  
+      r.donation_frequency,
+      ROUND(AVG(d.donation), 2) AS avg_donation,
+      SUM(d.donation) AS total_donation,
+      COUNT(d.donation) AS donation_count
+FROM Donation_Data d
+JOIN Donor_Data2 r
+      ON d.id = r.id
+GROUP BY r.donation_frequency;
